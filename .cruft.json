@@ -1,0 +1,18 @@
+{
+  "template": "https://github.com/dyne/starters",
+  "commit": "e7b1e851d0de3e9d993b93554b6b272096ee3f30",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "project_name": "ghisa",
+      "project_slug": "ghisa",
+      "project_description": "Uè  Anda dò, andas tà, leva ti dai p",
+      "full_name": "Puria Nafisi Azizi",
+      "email": "puria@dyne.org",
+      "repo": "github.com/forkbombeu/ghisa",
+      "go_version": "1.22",
+      "_template": "https://github.com/dyne/starters"
+    }
+  },
+  "directory": "go"
+}
