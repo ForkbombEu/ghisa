@@ -5,8 +5,10 @@ Not recommended for production, unless you're a fan of Stephen King's inspired l
 ![Ghisa](https://img3.stcrm.it/images/18134478/550x/20190124-220035117-6424.jpg)
 
 
-## 📝 Site docs
+## 🕹 Run
+
+The service will run on port `5552` to run it just:
 
 ```bash
-go install golang.org/x/pkgsite/cmd/pkgsite@latest && pkgsite
+./ghisa
 ```
