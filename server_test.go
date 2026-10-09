@@ -156,3 +156,52 @@ func TestProxyHandler(t *testing.T) {
 		checkCorsHeaders(t, w)
 	})
 }
+
+func TestProxyHandlerStripsCookieDomain(t *testing.T) {
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Set-Cookie", "TS0114f86e=abc123; Path=/; Domain=.pre.issuer.wallet.ipzs.it; Secure")
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer backend.Close()
+
+	req := newTestRequest(http.MethodGet, backend.URL+"/offer", "")
+	w := httptest.NewRecorder()
+
+	proxyHandler(w, req)
+
+	cookies := w.Result().Cookies()
+	if len(cookies) != 1 {
+		t.Fatalf("expected 1 cookie, got %d", len(cookies))
+	}
+	cookie := cookies[0]
+	if cookie.Name != "TS0114f86e" || cookie.Value != "abc123" {
+		t.Errorf("unexpected cookie %q=%q", cookie.Name, cookie.Value)
+	}
+	if cookie.Domain != "" {
+		t.Errorf("upstream cookie domain must be stripped for the proxy host, got %q", cookie.Domain)
+	}
+	if cookie.Path != "/" || !cookie.Secure {
+		t.Errorf("expected Path=/ and Secure preserved, got Path=%q Secure=%v", cookie.Path, cookie.Secure)
+	}
+	if strings.Contains(strings.ToLower(w.Header().Get("Set-Cookie")), "domain=") {
+		t.Errorf("Domain attribute leaked in raw header: %q", w.Header().Get("Set-Cookie"))
+	}
+}
+
+func TestProxyHandlerForwardsRequestCookie(t *testing.T) {
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(r.Header.Get("Cookie")))
+	}))
+	defer backend.Close()
+
+	req := newTestRequest(http.MethodGet, backend.URL, "")
+	req.Header.Set("Cookie", "TS0114f86e=abc123")
+	w := httptest.NewRecorder()
+
+	proxyHandler(w, req)
+
+	body, _ := io.ReadAll(w.Result().Body)
+	if string(body) != "TS0114f86e=abc123" {
+		t.Errorf("expected request cookie forwarded upstream, got %q", string(body))
+	}
+}

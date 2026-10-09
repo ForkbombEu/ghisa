@@ -67,6 +67,9 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 
 	for key, values := range resp.Header {
 		for _, value := range values {
+			if strings.EqualFold(key, "Set-Cookie") {
+				value = stripCookieDomain(value)
+			}
 			w.Header().Add(key, value)
 		}
 	}
@@ -78,6 +81,24 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(body)
+}
+
+// stripCookieDomain removes the Domain attribute from a Set-Cookie value.
+// Upstream issuers scope their session cookies to their own host (e.g.
+// Domain=.pre.issuer.wallet.ipzs.it). A client that receives such a header
+// from the proxy host rejects it per RFC 6265, so the cookie is never stored
+// and never replayed on subsequent requests. Dropping Domain makes the cookie
+// host-only for the proxy, keeping the session alive through the proxy.
+func stripCookieDomain(setCookie string) string {
+	attributes := strings.Split(setCookie, ";")
+	kept := make([]string, 0, len(attributes))
+	for _, attribute := range attributes {
+		if strings.HasPrefix(strings.ToLower(strings.TrimSpace(attribute)), "domain=") {
+			continue
+		}
+		kept = append(kept, attribute)
+	}
+	return strings.Join(kept, ";")
 }
 
 func healthHandler(w http.ResponseWriter, req *http.Request) {
