@@ -22,7 +22,7 @@ func checkCorsHeaders(t *testing.T, w *httptest.ResponseRecorder) {
 	if w.Header().Get("Access-Control-Allow-Methods") != "GET, POST, OPTIONS" {
 		t.Error("CORS header Access-Control-Allow-Methods is missing or incorrect")
 	}
-	if w.Header().Get("Access-Control-Allow-Headers") != "Content-Type" {
+	if w.Header().Get("Access-Control-Allow-Headers") != "Content-Type, Authorization" {
 		t.Error("CORS header Access-Control-Allow-Headers is missing or incorrect")
 	}
 }
