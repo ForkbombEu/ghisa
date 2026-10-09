@@ -1,0 +1,13 @@
+services:
+  ghisa:
+    build:
+      context: .
+    image: ghisa:latest
+    restart: unless-stopped
+    environment:
+      - PORT=5552
+      # Coolify generates the domain and routes it to internal port 5552.
+      # Set the actual hostname under the component's "Domains" field.
+      - SERVICE_FQDN_GHISA_5552
+    expose:
+      - "5552"

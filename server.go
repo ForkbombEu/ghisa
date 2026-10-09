@@ -100,8 +100,13 @@ func main() {
 	mux.HandleFunc("/", proxyHandler)
 	mux.HandleFunc("/health", healthHandler)
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5552"
+	}
+
 	server := &http.Server{
-		Addr:              ":5552",
+		Addr:              ":" + port,
 		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
@@ -122,8 +127,8 @@ func main() {
 		log.Println("GHISA server stopped")
 	}()
 
-	log.Println("GHISA: proxy server is running on port 5552...")
+	log.Printf("GHISA: proxy server is running on port %s...", port)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("GHISA: Could not listen on port 5552: %v\n", err)
+		log.Fatalf("GHISA: Could not listen on port %s: %v\n", port, err)
 	}
 }
